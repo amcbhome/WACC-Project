@@ -4,25 +4,29 @@ import pandas as pd
 import wacc_module as wacc
 import report_generator as rg
 
+
 # Page Setup
 st.set_page_config(page_title="WACC Automation Tool", layout="centered")
 st.title("📊 Weighted Average Cost of Capital Automation")
 
+
 # ============================
-# 1) Company Name (manual)
+# 1️⃣ Company Name
 # ============================
 company_name = st.text_input("Company Name", value="Untitled Company")
 st.markdown("---")
 
+
 # ============================
-# 2) Global Input – Tax Rate
+# 2️⃣ Global Input – Tax Rate
 # ============================
 tax_rate = st.number_input(
     "Corporate Tax Rate (%)", value=30.0, min_value=0.0, max_value=100.0
 ) / 100
 
+
 # ============================
-# 3) Input Panels by Instrument
+# 3️⃣ Input Panels by Instrument
 # ============================
 
 # ---- Equity ----
@@ -34,6 +38,7 @@ P0_equity = st.number_input("Market Price per Share (£)", value=4.17)
 BV_equity = st.number_input("Book Value of Equity (£000)", value=13600.0)
 MV_equity = st.number_input("Market Value of Equity (£000)", value=53376.0)
 
+
 # ---- Preference Shares ----
 st.subheader("Preference Shares")
 Dp = st.number_input("Preference Dividend (£ per share)", value=0.08)
@@ -41,6 +46,7 @@ P0_pref = st.number_input("Market Price per Pref Share (£)", value=0.89)
 
 BV_pref = st.number_input("Book Value (£000)", value=9000.0)
 MV_pref = st.number_input("Market Value (£000)", value=8010.0)
+
 
 # ---- Redeemable Debt ----
 st.subheader("Redeemable Debt")
@@ -53,6 +59,7 @@ P0_red = st.number_input("Market Price per £100 Nominal (£)", value=96.0)
 BV_red = st.number_input("Book Value (£000)", value=4650.0)
 MV_red = st.number_input("Market Value (£000)", value=4464.0)
 
+
 # ---- Irredeemable Debt ----
 st.subheader("Irredeemable Debt")
 I_irred = st.number_input("Annual Coupon (£)", value=9.0)
@@ -61,6 +68,7 @@ P0_irred = st.number_input("Market Price per £100 Nominal (£)", value=108.0)
 BV_irred = st.number_input("Book Value (£000)", value=8500.0)
 MV_irred = st.number_input("Market Value (£000)", value=9180.0)
 
+
 # ---- Bank Loans ----
 st.subheader("Bank Loans")
 interest_bank = st.number_input("Bank Loan Interest Rate (%)", value=7.0) / 100
@@ -68,8 +76,9 @@ interest_bank = st.number_input("Bank Loan Interest Rate (%)", value=7.0) / 100
 BV_bank = st.number_input("Book Value (£000)", value=3260.0)
 MV_bank = st.number_input("Market Value (£000)", value=3260.0)
 
+
 # ============================
-# 4) WACC Calculations
+# 4️⃣ WACC Calculations
 # ============================
 
 # Component Costs
@@ -91,8 +100,9 @@ weights_MV = wacc.calculate_weights(MV_values)
 WACC_BV = wacc.calculate_wacc(costs, weights_BV)
 WACC_MV = wacc.calculate_wacc(costs, weights_MV)
 
+
 # ============================
-# 5) Display Results
+# 5️⃣ Display Results
 # ============================
 st.markdown("---")
 st.subheader("✅ Summary of WACC Results")
@@ -103,17 +113,22 @@ results_df = pd.DataFrame({
     "Weight (Book)": weights_BV,
     "Weight (Market)": weights_MV
 })
+
 st.dataframe(results_df.style.format({
-    "Cost (%)": "{:.2f}", "Weight (Book)": "{:.4f}", "Weight (Market)": "{:.4f}"
+    "Cost (%)": "{:.2f}",
+    "Weight (Book)": "{:.4f}",
+    "Weight (Market)": "{:.4f}"
 }))
 
 st.metric("WACC based on Book Values", f"{WACC_BV*100:.2f}%")
 st.metric("WACC based on Market Values", f"{WACC_MV*100:.2f}%")
 
+
 # ============================
-# 6) Generate WACC Report (LaTeX)
+# 6️⃣ Generate WACC Report (LaTeX)
 # ============================
 st.markdown("---")
+
 if st.button("📄 Generate LaTeX Report"):
     tex_or_pdf_path = rg.build_wacc_report(
         company_name=company_name,
@@ -129,7 +144,18 @@ if st.button("📄 Generate LaTeX Report"):
         WACC_MV=WACC_MV,
         BV_values=BV_values,
         MV_values=MV_values,
-        allow_compile=False  # Set True if LaTeX toolchain available
+        allow_compile=False
     )
-    st.success(f"Report generated! File available: {tex_or_pdf_path}")
-    st.info("Upload the generated .tex to Overleaf to produce a PDF.")
+    
+    st.success("✅ LaTeX report generated!")
+
+    # Download Button
+    with open(tex_or_pdf_path, "rb") as f:
+        st.download_button(
+            label="⬇️ Download LaTeX (.tex) Report",
+            data=f,
+            file_name="wacc_report.tex",
+            mime="text/plain"
+        )
+
+st.info("📌 Compile the downloaded .tex file in Overleaf to get the PDF.")
