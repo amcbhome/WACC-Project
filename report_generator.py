@@ -19,12 +19,21 @@ def build_wacc_report(
     weights_MV,
     WACC_BV: float,
     WACC_MV: float,
+    equity_method: str,
+    rf: float,
+    mrp: float,
+    beta: float,
+    d0,
+    growth,
+    p0_equity,
+    capm_company: str,
     forensic_data: dict | None = None,
     output_tex: str = "wacc_report.tex",
     output_pdf: str = "wacc_report.pdf",
     allow_compile: bool = False
 ) -> str:
 
+    # Read template
     with open(TEX_TEMPLATE_FILE, "r", encoding="utf-8") as f:
         tmpl = Template(f.read())
 
@@ -32,7 +41,7 @@ def build_wacc_report(
     rows_bv = [{"source": s, "weight": w, "cost": c} for s, w, c in zip(sources, weights_BV, [equity_cost, pref_cost, red_cost, irred_cost, bank_cost])]
     rows_mv = [{"source": s, "weight": w, "cost": c} for s, w, c in zip(sources, weights_MV, [equity_cost, pref_cost, red_cost, irred_cost, bank_cost])]
 
-    # Build forensic LaTeX block or placeholder
+    # Forensic LaTeX block (or placeholder)
     if forensic_data:
         tex_forensic = rf"""
 \section*{{Forensic Analytics}}
@@ -52,6 +61,7 @@ Implied {forensic_data["missing_choice"]}: \textbf{{{forensic_data["solved_cost"
 No forensic analysis was performed during this run. A reverse-solve section will appear here when the Forensic tool is used.
 """
 
+    # Render LaTeX
     tex = tmpl.render(
         COMPANY_NAME=company_name,
         TAX_RATE=f"{tax_rate*100:.0f}\\%",
@@ -64,6 +74,15 @@ No forensic analysis was performed during this run. A reverse-solve section will
         WACC_MV_PCT=f"{WACC_MV*100:.2f}",
         ROWS_BV=rows_bv,
         ROWS_MV=rows_mv,
+        # Equity method block
+        EQUITY_METHOD=equity_method,
+        RF_PCT=f"{rf*100:.2f}\\%",
+        MRP_PCT=f"{mrp*100:.2f}\\%",
+        BETA_VAL=f"{beta:.2f}",
+        D0_VAL=("N/A" if d0 is None else f"{d0:.4f}"),
+        G_PCT=("N/A" if growth is None else f"{growth*100:.2f}\\%"),
+        P0_EQUITY=("N/A" if p0_equity is None else f"{p0_equity:.2f}"),
+        CAPM_COMPANY=(capm_company if capm_company else "—"),
         FORENSIC_BLOCK=tex_forensic,
     )
 
