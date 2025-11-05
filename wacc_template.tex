@@ -25,13 +25,29 @@ Key Results:
 \end{itemize}
 
 \section{Step One: Cost of Finance Sources}
+\subsection*{Cost of Equity}
+\textbf{Method:} {{ EQUITY_METHOD }}
+
+{% if EQUITY_METHOD == 'CAPM' -%}
+\[
+R_e = R_f + \beta (MRP)
+\]
+Inputs used: Company = \textit{{ CAPM_COMPANY }}, \quad \(R_f = {{ RF_PCT }}\), \quad \(MRP = {{ MRP_PCT }}\), \quad \(\beta = {{ BETA_VAL }}\). \\
+Result: \textbf{{ EQUITY_COST_PCT }}
+{% else -%}
+\[
+R_e = \frac{D_1}{P_0} + g \quad \text{with} \quad D_1 = D_0(1+g)
+\]
+Inputs used: \(D_0 = {{ D0_VAL }}\), \quad \(g = {{ G_PCT }}\), \quad \(P_0 = {{ P0_EQUITY }}\). \\
+Result: \textbf{{ EQUITY_COST_PCT }}
+{% endif %}
+
+\subsection*{Other Sources (after tax where applicable)}
 \begin{itemize}
-  \item Tax Rate: {{ TAX_RATE }}
-  \item Cost of Equity: {{ EQUITY_COST_PCT }}
-  \item Cost of Preference Shares: {{ PREF_COST_PCT }}
-  \item Cost of Redeemable Debt: {{ RED_COST_PCT }}
-  \item Cost of Irredeemable Debt: {{ IRRED_COST_PCT }}
-  \item Cost of Bank Loans: {{ BANK_COST_PCT }}
+  \item Preference shares: \textbf{{ PREF_COST_PCT }}
+  \item Redeemable debt: \textbf{{ RED_COST_PCT }}
+  \item Irredeemable debt: \textbf{{ IRRED_COST_PCT }}
+  \item Bank loans: \textbf{{ BANK_COST_PCT }}
 \end{itemize}
 
 \section{Step Two: Capital Structure Weights}
