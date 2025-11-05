@@ -4,10 +4,7 @@
 \usepackage{amsmath, amssymb}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,
-    linkcolor=black,
-    citecolor=black,
-    urlcolor=blue}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue}
 
 \usepackage[style=authoryear,backend=biber]{biblatex}
 \addbibresource{references.bib}
@@ -23,18 +20,18 @@ This report computes the Weighted Average Cost of Capital (WACC) for
 
 Key Results:
 \begin{itemize}
-    \item WACC (Book): \textbf{{ WACC_BV_PCT }}\%
-    \item WACC (Market): \textbf{{ WACC_MV_PCT }}\%
+  \item WACC (Book): \textbf{{ WACC_BV_PCT }}\%
+  \item WACC (Market): \textbf{{ WACC_MV_PCT }}\%
 \end{itemize}
 
 \section{Step One: Cost of Finance Sources}
 \begin{itemize}
-    \item Tax Rate: {{ TAX_RATE }}
-    \item Cost of Equity: {{ EQUITY_COST_PCT }}
-    \item Cost of Preference Shares: {{ PREF_COST_PCT }}
-    \item Cost of Redeemable Debt: {{ RED_COST_PCT }}
-    \item Cost of Irredeemable Debt: {{ IRRED_COST_PCT }}
-    \item Cost of Bank Loans: {{ BANK_COST_PCT }}
+  \item Tax Rate: {{ TAX_RATE }}
+  \item Cost of Equity: {{ EQUITY_COST_PCT }}
+  \item Cost of Preference Shares: {{ PREF_COST_PCT }}
+  \item Cost of Redeemable Debt: {{ RED_COST_PCT }}
+  \item Cost of Irredeemable Debt: {{ IRRED_COST_PCT }}
+  \item Cost of Bank Loans: {{ BANK_COST_PCT }}
 \end{itemize}
 
 \section{Step Two: Capital Structure Weights}
@@ -59,10 +56,7 @@ Key Results:
 \textbf{Source} & \textbf{Cost (\%)} & \textbf{Weight (BV)} & \textbf{Weight (MV)} \\
 \midrule
 {% for r in ROWS_BV -%}
-{{ r.source }} &
-{{ "%.2f"|format(r.cost * 100) }} &
-{{ "%.4f"|format(r.weight) }} &
-{{ "%.4f"|format(ROWS_MV[loop.index0].weight) }} \\
+{{ r.source }} & {{ "%.2f"|format(r.cost*100) }} & {{ "%.4f"|format(r.weight) }} & {{ "%.4f"|format(ROWS_MV[loop.index0].weight) }} \\
 {% endfor %}
 \midrule
 \textbf{WACC (Book)} & \multicolumn{3}{r}{\textbf{{ WACC_BV_PCT }}\%} \\
@@ -71,6 +65,7 @@ Key Results:
 \end{tabular}
 \end{center}
 
-\printbibliography
+{{ FORENSIC_BLOCK }}
 
+\printbibliography
 \end{document}
