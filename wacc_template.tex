@@ -4,12 +4,10 @@
 \usepackage{amsmath, amssymb}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
+\hypersetup{colorlinks=true,
     linkcolor=black,
     citecolor=black,
-    urlcolor=blue
-}
+    urlcolor=blue}
 
 \usepackage[style=authoryear,backend=biber]{biblatex}
 \addbibresource{references.bib}
@@ -21,40 +19,35 @@
 
 \section*{Executive Summary}
 This report computes the Weighted Average Cost of Capital (WACC) for
-\textbf{{{ COMPANY_NAME }}} following the standard three-step approach 
-\textcite{WatsonHead2019}. \\
+\textbf{{ COMPANY_NAME }} following methods in \textcite{WatsonHead2019}.
+
 Key Results:
 \begin{itemize}
-  \item WACC (Book Values): \textbf{{{ WACC_BV_PCT }}\%}
-  \item WACC (Market Values): \textbf{{{ WACC_MV_PCT }}\%}
+    \item WACC (Book): \textbf{{ WACC_BV_PCT }}\%
+    \item WACC (Market): \textbf{{ WACC_MV_PCT }}\%
 \end{itemize}
-Market-value WACC is preferred because it reflects current required 
-returns of investors.
 
 \section{Step One: Cost of Finance Sources}
-Costs are computed using standard models in corporate finance 
-\parencite{WatsonHead2019}.
 \begin{itemize}
-  \item Tax Rate: \textbf{{{ TAX_RATE }}}
-  \item Cost of Equity (DGM): \textbf{{{ EQUITY_COST_PCT }}}
-  \item Cost of Preference Shares: \textbf{{{ PREF_COST_PCT }}}
-  \item Cost of Redeemable Debt (after tax): \textbf{{{ RED_COST_PCT }}}
-  \item Cost of Irredeemable Debt (after tax): \textbf{{{ IRRED_COST_PCT }}}
-  \item Cost of Bank Loans (after tax): \textbf{{{ BANK_COST_PCT }}}
+    \item Tax Rate: {{ TAX_RATE }}
+    \item Cost of Equity: {{ EQUITY_COST_PCT }}
+    \item Cost of Preference Shares: {{ PREF_COST_PCT }}
+    \item Cost of Redeemable Debt: {{ RED_COST_PCT }}
+    \item Cost of Irredeemable Debt: {{ IRRED_COST_PCT }}
+    \item Cost of Bank Loans: {{ BANK_COST_PCT }}
 \end{itemize}
 
 \section{Step Two: Capital Structure Weights}
-\subsection*{Book vs Market Value Weights}
 \begin{center}
 \begin{tabular}{lcc}
 \toprule
 \textbf{Source} & \textbf{Weight (BV)} & \textbf{Weight (MV)} \\
 \midrule
-{% for r in ROWS_BV %}
-{{ r.source }} & {{ '{:.4f}'.format(r.weight) }} & {{ '{:.4f}'.format(ROWS_MV[loop.index0].weight) }} \\
+{% for r in ROWS_BV -%}
+{{ r.source }} & {{ "%.4f"|format(r.weight) }} & {{ "%.4f"|format(ROWS_MV[loop.index0].weight) }} \\
 {% endfor %}
 \midrule
-\textbf{Total} & \textbf{1.0000} & \textbf{1.0000} \\
+\textbf{Total} & 1.0000 & 1.0000 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -65,34 +58,17 @@ Costs are computed using standard models in corporate finance
 \toprule
 \textbf{Source} & \textbf{Cost (\%)} & \textbf{Weight (BV)} & \textbf{Weight (MV)} \\
 \midrule
-{% for r in ROWS_BV %}
-{{ r.source }} & {{ '{:.2f}'.format(r.cost*100) }} & {{ '{:.4f}'.format(r.weight) }} & {{ '{:.4f}'.format(ROWS_MV[loop.index0].weight) }} \\
+{% for r in ROWS_BV -%}
+{{ r.source }} &
+{{ "%.2f"|format(r.cost * 100) }} &
+{{ "%.4f"|format(r.weight) }} &
+{{ "%.4f"|format(ROWS_MV[loop.index0].weight) }} \\
 {% endfor %}
 \midrule
-\textbf{WACC (Book)} & \multicolumn{3}{r}{\textbf{{{ WACC_BV_PCT }}\%}} \\
-\textbf{WACC (Market)} & \multicolumn{3}{r}{\textbf{{{ WACC_MV_PCT }}\%}} \\
+\textbf{WACC (Book)} & \multicolumn{3}{r}{\textbf{{ WACC_BV_PCT }}\%} \\
+\textbf{WACC (Market)} & \multicolumn{3}{r}{\textbf{{ WACC_MV_PCT }}\%} \\
 \bottomrule
 \end{tabular}
-\end{center}
-
-\section*{Figure: WACC (Book vs Market)}
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[
-    ybar,
-    ymin=0, ymax=12,
-    bar width=20pt,
-    width=0.8\textwidth,
-    height=7cm,
-    symbolic x coords={Book, Market},
-    xtick=data,
-    ylabel={WACC (\%)},
-    nodes near coords,
-    nodes near coords align={vertical},
-]
-\addplot coordinates {(Book, {{ WACC_BV_PCT }} ) (Market, {{ WACC_MV_PCT }})};
-\end{axis}
-\end{tikzpicture}
 \end{center}
 
 \printbibliography
