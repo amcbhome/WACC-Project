@@ -3,47 +3,59 @@ import pathlib
 import subprocess
 from jinja2 import Template
 
+# Paths
 BASE = pathlib.Path(__file__).parent
 TEX_TEMPLATE_FILE = BASE / "wacc_template.tex"
-BIB_FILE = BASE / "references.bib"
 
 def build_wacc_report(
-    company_name,
-    tax_rate,
-    equity_cost,
-    pref_cost,
-    red_cost,
-    irred_cost,
-    bank_cost,
-    bv_weights,
-    mv_weights,
-    ROWS_BV,
-    ROWS_MV,
-    MV_CONTRIB,
-    MV_CONTRIB_TOTAL,
-    equity_method,
-    forensic_data=None
-):
+    company_name: str,
+    tax_rate: float,
+    equity_cost: float,
+    pref_cost: float,
+    red_cost: float,
+    irred_cost: float,
+    bank_cost: float,
+    weights_BV,
+    weights_MV,
+    WACC_BV: float,
+    WACC_MV: float,
+    equity_method: str,        # <-- REQUIRED (matches app.py)
+    rf: float,
+    mrp: float,
+    beta: float,
+    d0,                        # may be None when CAPM is used
+    growth,                    # may be None when CAPM is used
+    p0_equity,                 # may be None when CAPM is used
+    capm_company: str,
+    forensic_data: dict | None = None,
+    output_tex: str = "wacc_report.tex",
+    output_pdf: str = "wacc_report.pdf",
+    allow_compile: bool = False
+) -> str:
+    """
+    Renders LaTeX (.tex). If allow_compile=True and a TeX toolchain is available,
+    attempts to produce a PDF too.
+    """
 
-
-    # Read template
+    # ── Load template
     with open(TEX_TEMPLATE_FILE, "r", encoding="utf-8") as f:
         tmpl = Template(f.read())
 
     sources = ["Equity", "Preference", "Redeemable debt", "Irredeemable debt", "Bank loans"]
+    costs = [equity_cost, pref_cost, red_cost, irred_cost, bank_cost]
 
-    # Rows for Step Two/Three tables
-    rows_bv = [{"source": s, "weight": w, "cost": c} for s, w, c in zip(sources, weights_BV, [equity_cost, pref_cost, red_cost, irred_cost, bank_cost])]
-    rows_mv = [{"source": s, "weight": w, "cost": c} for s, w, c in zip(sources, weights_MV, [equity_cost, pref_cost, red_cost, irred_cost, bank_cost])]
+    # Rows for the Step Two/Three tables
+    rows_bv = [{"source": s, "weight": w, "cost": c} for s, w, c in zip(sources, weights_BV, costs)]
+    rows_mv = [{"source": s, "weight": w, "cost": c} for s, w, c in zip(sources, weights_MV, costs)]
 
-    # Market-basis contributions (for WACC Reconciliation table)
-    contrib_mv = [w * c * 100.0 for w, c in zip(weights_MV, [equity_cost, pref_cost, red_cost, irred_cost, bank_cost])]
-    total_mv_contrib = sum(contrib_mv)  # ≈ WACC_MV*100 using full precision
+    # Market-basis contributions for WACC reconciliation (percent format later in LaTeX)
+    mv_contrib = [w * c * 100.0 for w, c in zip(weights_MV, costs)]
+    mv_contrib_total = sum(mv_contrib)  # should equal WACC_MV*100 at full precision
 
-    # Forensic LaTeX block + reconciliation (4dp)
+    # ── Build forensic block (or placeholder). Show to 4dp per your spec.
     if forensic_data:
         residual_pct = (forensic_data["target_wacc"] - forensic_data["known_comp"]) * 100.0
-        tex_forensic = rf"""
+        forensic_block = rf"""
 \section*{{Forensic Analytics}}
 Missing Cost: \textbf{{{forensic_data["missing_choice"]}}} \\
 Basis used: \textbf{{{forensic_data["basis"]}}} weights \\
@@ -70,12 +82,12 @@ Target WACC & {forensic_data["target_wacc"]*100:.4f}\% \\
 \end{center}
 """
     else:
-        tex_forensic = r"""
+        forensic_block = r"""
 \section*{Forensic Analytics}
 No forensic analysis was performed during this run. A reverse-solve section will appear here when the Forensic tool is used.
 """
 
-    # Render LaTeX
+    # ── Render LaTeX
     tex = tmpl.render(
         COMPANY_NAME=company_name,
         TAX_RATE=f"{tax_rate*100:.0f}\\%",
@@ -86,8 +98,10 @@ No forensic analysis was performed during this run. A reverse-solve section will
         BANK_COST_PCT=f"{bank_cost*100:.2f}\\%",
         WACC_BV_PCT=f"{WACC_BV*100:.2f}",
         WACC_MV_PCT=f"{WACC_MV*100:.2f}",
+
         ROWS_BV=rows_bv,
         ROWS_MV=rows_mv,
+
         # Equity method block
         EQUITY_METHOD=equity_method,
         RF_PCT=f"{rf*100:.2f}\\%",
@@ -97,27 +111,35 @@ No forensic analysis was performed during this run. A reverse-solve section will
         G_PCT=("N/A" if growth is None else f"{growth*100:.2f}\\%"),
         P0_EQUITY=("N/A" if p0_equity is None else f"{p0_equity:.2f}"),
         CAPM_COMPANY=(capm_company if capm_company else "—"),
-        # Reconciliation data (Market basis table)
-        MV_CONTRIB=[{"source": s, "contrib": v, "weight": w, "cost": c} for s, v, w, c in zip(sources, contrib_mv, weights_MV, [equity_cost, pref_cost, red_cost, irred_cost, bank_cost])],
-        MV_CONTRIB_TOTAL=total_mv_contrib,
-        FORENSIC_BLOCK=tex_forensic,
+
+        # Reconciliation data (market basis)
+        MV_CONTRIB=[{"source": s, "contrib": v, "weight": w, "cost": c}
+                    for s, v, w, c in zip(sources, mv_contrib, weights_MV, costs)],
+        MV_CONTRIB_TOTAL=mv_contrib_total,
+
+        # Forensic section (already formatted LaTeX)
+        FORENSIC_BLOCK=forensic_block,
     )
 
-    # Write LaTeX file
+    # ── Write .tex
     with open(output_tex, "w", encoding="utf-8") as f:
         f.write(tex)
 
     if not allow_compile:
         return output_tex
 
+    # Optional local compile (ignored on Streamlit Cloud)
     try:
+        basename = os.path.splitext(output_tex)[0]
         subprocess.run(["pdflatex", "-interaction=nonstopmode", output_tex], check=True)
-        subprocess.run(["biber", os.path.splitext(output_tex)[0]], check=True)
+        subprocess.run(["biber", basename], check=True)
         subprocess.run(["pdflatex", "-interaction=nonstopmode", output_tex], check=True)
         subprocess.run(["pdflatex", "-interaction=nonstopmode", output_tex], check=True)
-        if os.path.exists(output_pdf):
-            return output_pdf
+        pdf_path = f"{basename}.pdf"
+        if os.path.exists(pdf_path):
+            return pdf_path
     except Exception:
+        # If compilation fails, still return the .tex path
         pass
 
     return output_tex
