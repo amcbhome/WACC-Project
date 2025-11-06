@@ -45,7 +45,7 @@ with st.sidebar:
                                  value=DEFAULT_BOE_RATE*100.0) / 100.0
             mrp = st.number_input("Market Risk Premium MRP (%)", value=DEFAULT_MRP*100.0) / 100.0
             
-            ftse_choice = st.selectbox("Select FTSE company for Beta (β)", list(FTSE10_BETES.keys()), index=0)
+            ftse_choice = st.selectbox("Select FTSE company for Beta (β)", list(FTSE10_BETAS.keys()), index=0)
             beta = st.number_input("Beta (β) — auto-filled (editable)",
                                    value=float(FTSE10_BETAS[ftse_choice]), step=0.01)
 
