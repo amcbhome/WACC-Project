@@ -8,30 +8,23 @@ TEX_TEMPLATE_FILE = BASE / "wacc_template.tex"
 BIB_FILE = BASE / "references.bib"
 
 def build_wacc_report(
-    company_name: str,
-    tax_rate: float,
-    equity_cost: float,
-    pref_cost: float,
-    red_cost: float,
-    irred_cost: float,
-    bank_cost: float,
-    weights_BV,
-    weights_MV,
-    WACC_BV: float,
-    WACC_MV: float,
-    equity_method: str,
-    rf: float,
-    mrp: float,
-    beta: float,
-    d0,
-    growth,
-    p0_equity,
-    capm_company: str,
-    forensic_data: dict | None = None,
-    output_tex: str = "wacc_report.tex",
-    output_pdf: str = "wacc_report.pdf",
-    allow_compile: bool = False
-) -> str:
+    company_name,
+    tax_rate,
+    equity_cost,
+    pref_cost,
+    red_cost,
+    irred_cost,
+    bank_cost,
+    bv_weights,
+    mv_weights,
+    ROWS_BV,
+    ROWS_MV,
+    MV_CONTRIB,
+    MV_CONTRIB_TOTAL,
+    equity_method,
+    forensic_data=None
+):
+
 
     # Read template
     with open(TEX_TEMPLATE_FILE, "r", encoding="utf-8") as f:
