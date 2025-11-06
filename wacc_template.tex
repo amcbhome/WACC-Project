@@ -38,7 +38,7 @@ Result: \textbf{{ EQUITY_COST_PCT }}
 \[
 R_e = \frac{D_1}{P_0} + g \quad \text{with} \quad D_1 = D_0(1+g)
 \]
-Inputs used: \(D_0 = {{ D0_VAL }}\), \quad \(g = {{ G_PCT }}\), \quad \(P_0 = {{ P0_EQUITY }}\). \\
+Inputs used: \(D_0 = {{ D0_Val }}\), \quad \(g = {{ G_PCT }}\), \quad \(P_0 = {{ P0_EQUITY }}\). \\
 Result: \textbf{{ EQUITY_COST_PCT }}
 {% endif %}
 
@@ -77,6 +77,24 @@ Result: \textbf{{ EQUITY_COST_PCT }}
 \midrule
 \textbf{WACC (Book)} & \multicolumn{3}{r}{\textbf{{ WACC_BV_PCT }}\%} \\
 \textbf{WACC (Market)} & \multicolumn{3}{r}{\textbf{{ WACC_MV_PCT }}\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.75em}
+\subsection*{WACC Reconciliation}
+(The reconciliation below uses market weights and costs with contributions shown to 4dp.)
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Source} & \textbf{Weight} & \textbf{Cost (\%)} & \textbf{Contribution (\%)} \\
+\midrule
+{% for r in MV_CONTRIB -%}
+{{ r.source }} & {{ "%.4f"|format(r.weight) }} & {{ "%.2f"|format(r.cost*100) }} & {{ "%.4f"|format(r.contrib) }} \\
+{% endfor %}
+\midrule
+\textbf{Total contribution} &  &  & \textbf{{ "%.4f"|format(MV_CONTRIB_TOTAL) }} \\
+\textbf{Target WACC (Market)} &  &  & \textbf{{ WACC_MV_PCT }}\% \\
 \bottomrule
 \end{tabular}
 \end{center}
