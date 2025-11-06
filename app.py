@@ -11,10 +11,10 @@ st.title("📊 Weighted Average Cost of Capital Automation")
 tab1, tab2 = st.tabs(["📊 WACC Calculator", "🔍 Forensic Analytics"])
 
 # ──────────────────────────────────────────────
-# Common constants (can be edited in UI)
+# Constants / Defaults
 # ──────────────────────────────────────────────
-DEFAULT_BOE_RATE = 0.050   # 5.00% Bank of England base rate
-DEFAULT_MRP = 0.055        # 5.5% UK Market Risk Premium (your choice A)
+DEFAULT_BOE_RATE = 0.050   # 5.00% (editable in UI)
+DEFAULT_MRP      = 0.055   # 5.50% (your choice A)
 
 FTSE10_BETAS = {
     "Tesco plc": 0.67,
@@ -33,18 +33,15 @@ FTSE10_BETAS = {
 # TAB 1 — WACC CALCULATOR
 # ──────────────────────────────────────────────
 with tab1:
-    # Company name (manual)
+    # Company
     company_name = st.text_input("Company Name", value="Untitled Company")
     st.markdown("---")
 
     # Global input
-    tax_rate = st.number_input(
-        "Corporate Tax Rate (%)", value=30.0, min_value=0.0, max_value=100.0
-    ) / 100
+    tax_rate = st.number_input("Corporate Tax Rate (%)", value=30.0, min_value=0.0, max_value=100.0) / 100.0
 
-    # ── Cost of Equity method ──────────────────
+    # Cost of Equity method
     st.subheader("Cost of Equity Method")
-
     equity_method = st.radio(
         "Choose method:",
         ["CAPM (uses Beta)", "Dividend Growth Model (DGM)"],
@@ -52,54 +49,22 @@ with tab1:
     )
 
     if equity_method.startswith("CAPM"):
-        # Risk-free: Bank of England base rate by default
-        st.caption("CAPM: Re = Rf + β × MRP")
-        rf = st.number_input(
-            "Risk-free rate Rf (%) — Bank of England base rate",
-            value=DEFAULT_BOE_RATE * 100.0,
-            help="Default is the BoE base rate (editable)."
-        ) / 100.0
-        mrp = st.number_input(
-            "Market Risk Premium MRP (%)",
-            value=DEFAULT_MRP * 100.0,
-            help="Default 5.5% as requested."
-        ) / 100.0
-
-        ftse_choice = st.selectbox(
-            "Select FTSE company to use its Beta (β)",
-            list(FTSE10_BETAS.keys()),
-            index=0
-        )
-        beta_default = FTSE10_BETAS[ftse_choice]
-        beta = st.number_input(
-            "Beta (β) — auto-filled from selection (editable)",
-            value=float(beta_default),
-            step=0.01
-        )
-
-        # Compute cost of equity via CAPM
+        st.caption("CAPM:  Rₑ = Rf + β × MRP")
+        rf = st.number_input("Risk-free rate Rf (%) — Bank of England base rate", value=DEFAULT_BOE_RATE * 100.0) / 100.0
+        mrp = st.number_input("Market Risk Premium MRP (%)", value=DEFAULT_MRP * 100.0) / 100.0
+        ftse_choice = st.selectbox("Select FTSE company for Beta (β)", list(FTSE10_BETAS.keys()), index=0)
+        beta = st.number_input("Beta (β) — auto-filled (editable)", value=float(FTSE10_BETAS[ftse_choice]), step=0.01)
         Re = rf + beta * mrp
-
-        # Store DGM placeholders empty
-        D0 = None; g = None; P0_equity = None
-
+        D0 = None; g = None; P0_equity = None  # placeholders for report
     else:
-        # DGM inputs
-        st.caption("DGM: Re = D₁/P₀ + g with D₁ = D₀(1+g)")
+        st.caption("DGM:  Rₑ = D₁/P₀ + g,  with  D₁ = D₀(1+g)")
         D0 = st.number_input("Dividend Just Paid D₀ (£ per share)", value=0.23)
-        g = st.number_input("Annual Dividend Growth Rate g (%)", value=5.0) / 100
+        g  = st.number_input("Annual Dividend Growth Rate g (%)", value=5.0) / 100.0
         P0_equity = st.number_input("Market Price per Share P₀ (£)", value=4.17)
-
-        # Compute cost of equity via DGM
         Re = wacc.cost_of_equity_dgm(D0, g, P0_equity)
+        rf = DEFAULT_BOE_RATE; mrp = DEFAULT_MRP; ftse_choice = ""; beta = 0.0
 
-        # Store CAPM placeholders defaulted
-        rf = DEFAULT_BOE_RATE
-        mrp = DEFAULT_MRP
-        ftse_choice = ""
-        beta = 0.0
-
-    # ── Other sources of finance ───────────────
+    # Other sources
     st.subheader("Preference Shares")
     Dp = st.number_input("Preference Dividend (£ per share)", value=0.08)
     P0_pref = st.number_input("Market Price per Pref Share (£)", value=0.89)
@@ -107,7 +72,7 @@ with tab1:
     st.subheader("Redeemable Debt")
     I_red = st.number_input("Annual Coupon (£, per £100 nominal)", value=5.0)
     RV = st.number_input("Redemption Value (£)", value=100.0)
-    n = st.number_input("Years to Redemption", value=6, min_value=1)
+    n  = st.number_input("Years to Redemption", value=6, min_value=1)
     P0_red = st.number_input("Market Price per £100 Nominal (£)", value=96.0)
 
     st.subheader("Irredeemable Debt")
@@ -115,10 +80,10 @@ with tab1:
     P0_irred = st.number_input("Market Price per £100 Nominal (£)", value=108.0)
 
     st.subheader("Bank Loans")
-    interest_bank = st.number_input("Bank Loan Interest Rate i (%)", value=7.0) / 100
+    interest_bank = st.number_input("Bank Loan Interest Rate i (%)", value=7.0) / 100.0
 
-    # ── Book & Market values (for weights) ─────
-    st.markdown("### Capital Structure (for weights)")
+    # Capital structure values (weights)
+    st.markdown("### Capital Structure (Book & Market for weights)")
     BV_equity = st.number_input("Book Value of Equity (£000)", value=13600.0)
     MV_equity = st.number_input("Market Value of Equity (£000)", value=53376.0)
     BV_pref   = st.number_input("Book Value of Preference (£000)", value=9000.0)
@@ -130,24 +95,24 @@ with tab1:
     BV_bank   = st.number_input("Book Value of Bank Loans (£000)", value=3260.0)
     MV_bank   = st.number_input("Market Value of Bank Loans (£000)", value=3260.0)
 
-    # ── Component costs ────────────────────────
-    Rp = wacc.cost_of_preference_shares(Dp, P0_pref)
-    Rd_red = wacc.cost_of_redeemable_debt(I_red, P0_red, RV, n, tax_rate)
-    Rd_irred = wacc.cost_of_irredeemable_debt(I_irred, P0_irred, tax_rate)
+    # Component costs (after tax where applicable)
+    Rp      = wacc.cost_of_preference_shares(Dp, P0_pref)
+    Rd_red  = wacc.cost_of_redeemable_debt(I_red, P0_red, RV, n, tax_rate)
+    Rd_irred= wacc.cost_of_irredeemable_debt(I_irred, P0_irred, tax_rate)
     Rd_bank = wacc.cost_of_bank_loans(interest_bank, tax_rate)
-    costs = [Re, Rp, Rd_red, Rd_irred, Rd_bank]
+    costs   = [Re, Rp, Rd_red, Rd_irred, Rd_bank]
 
     # Weights
-    BV_values = [BV_equity, BV_pref, BV_red, BV_irred, BV_bank]
-    MV_values = [MV_equity, MV_pref, MV_red, MV_irred, MV_bank]
-    weights_BV = wacc.calculate_weights(BV_values)
-    weights_MV = wacc.calculate_weights(MV_values)
+    BV_values   = [BV_equity, BV_pref, BV_red, BV_irred, BV_bank]
+    MV_values   = [MV_equity, MV_pref, MV_red, MV_irred, MV_bank]
+    weights_BV  = wacc.calculate_weights(BV_values)
+    weights_MV  = wacc.calculate_weights(MV_values)
 
     # WACC results
     WACC_BV = wacc.calculate_wacc(costs, weights_BV)
     WACC_MV = wacc.calculate_wacc(costs, weights_MV)
 
-    # Display
+    # Display results
     st.markdown("---")
     st.subheader("✅ Summary of WACC Results")
     results_df = pd.DataFrame({
@@ -162,10 +127,10 @@ with tab1:
     st.metric("WACC (Book Values)", f"{WACC_BV*100:.2f}%")
     st.metric("WACC (Market Values)", f"{WACC_MV*100:.2f}%")
 
-    # Generate LaTeX report
+    # Generate LaTeX (includes reconciliation + optional forensic)
     st.markdown("---")
     if st.button("📄 Generate LaTeX Report"):
-        forensic_data = st.session_state.get("forensic", None)  # may be None
+        forensic_data = st.session_state.get("forensic", None)
         tex_path = rg.build_wacc_report(
             company_name=company_name,
             tax_rate=tax_rate,
@@ -179,12 +144,8 @@ with tab1:
             WACC_BV=WACC_BV,
             WACC_MV=WACC_MV,
             equity_method=("CAPM" if equity_method.startswith("CAPM") else "DGM"),
-            rf=rf,
-            mrp=mrp,
-            beta=beta,
-            d0=D0,
-            growth=g,
-            p0_equity=P0_equity,
+            rf=rf, mrp=mrp, beta=beta,
+            d0=D0, growth=g, p0_equity=P0_equity,
             capm_company=ftse_choice,
             forensic_data=forensic_data,
             allow_compile=False
@@ -203,35 +164,17 @@ with tab2:
 
     missing_choice = st.selectbox(
         "Which cost is missing?",
-        [
-            "Cost of Equity",
-            "Cost of Preference Shares",
-            "Cost of Redeemable Debt",
-            "Cost of Irredeemable Debt",
-            "Cost of Bank Loans"
-        ]
+        ["Cost of Equity", "Cost of Preference Shares", "Cost of Redeemable Debt", "Cost of Irredeemable Debt", "Cost of Bank Loans"]
     )
-
     forensic_basis = st.radio("Forensic WACC Basis:", ["Market", "Book"])
     default_target = WACC_MV * 100 if forensic_basis == "Market" else WACC_BV * 100
-    target_wacc = st.number_input(
-        "Target WACC (%)",
-        value=float(f"{default_target:.2f}"),
-        help="Enter expected WACC to reverse-engineer the missing input."
-    ) / 100
+    target_wacc = st.number_input("Target WACC (%)", value=float(f"{default_target:.2f}")) / 100.0
 
     if st.button("🔎 Run Forensic Solver"):
-        idx = [
-            "Cost of Equity",
-            "Cost of Preference Shares",
-            "Cost of Redeemable Debt",
-            "Cost of Irredeemable Debt",
-            "Cost of Bank Loans"
-        ].index(missing_choice)
-
+        idx = ["Cost of Equity","Cost of Preference Shares","Cost of Redeemable Debt","Cost of Irredeemable Debt","Cost of Bank Loans"].index(missing_choice)
         weights = weights_MV if forensic_basis == "Market" else weights_BV
         known_costs = [Re, Rp, Rd_red, Rd_irred, Rd_bank]
-        known_costs[idx] = 0.0  # zero out the missing one
+        known_costs[idx] = 0.0  # zero out missing
 
         known_comp = sum(c * w for c, w in zip(known_costs, weights))
         missing_weight = weights[idx]
@@ -240,7 +183,7 @@ with tab2:
             st.error("Missing component has zero financing weight → cannot solve.")
         else:
             solved_cost = (target_wacc - known_comp) / missing_weight
-            st.success(f"Solved {missing_choice}: **{solved_cost*100:.2f}%**")
+            st.success(f"Solved {missing_choice}: **{solved_cost*100:.4f}%**")  # 4dp
 
             # Store for LaTeX integration
             st.session_state["forensic"] = {
@@ -252,4 +195,4 @@ with tab2:
                 "missing_weight": missing_weight,
             }
 
-            st.caption("Using:  WACC = Σ(wᵢ × cᵢ)  ⇒  cₓ = (WACC − Σ wᵢcᵢ for i≠x) / wₓ")
+            st.caption("Using:  WACC = Σ(wᵢ × cᵢ)  ⇒  cₓ = (WACC − Σ wᵢcᵢ for i≠x) / wₓ  (shown to 4dp)")
