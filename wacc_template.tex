@@ -16,7 +16,8 @@
 
 \section*{Executive Summary}
 This report computes the Weighted Average Cost of Capital (WACC) for
-\textbf{{ COMPANY_NAME }} following methods in \textcite{WatsonHead2019}.
+\textbf{{ COMPANY_NAME }} using methods from \textcite{WatsonHead2019}. \\
+Results are based on market and book capital structure weights.
 
 Key Results:
 \begin{itemize}
@@ -28,18 +29,18 @@ Key Results:
 \subsection*{Cost of Equity}
 \textbf{Method:} {{ EQUITY_METHOD }}
 
-{% if EQUITY_METHOD == 'CAPM' -%}
+{% if EQUITY_METHOD == 'CAPM' %}
 \[
 R_e = R_f + \beta (MRP)
 \]
-Inputs used: Company = \textit{{ CAPM_COMPANY }}, \quad \(R_f = {{ RF_PCT }}\), \quad \(MRP = {{ MRP_PCT }}\), \quad \(\beta = {{ BETA_VAL }}\). \\
+Inputs used: Company = \textit{{ CAPM_COMPANY }}, \\
+\(R_f = {{ RF_PCT }}\), \quad \(MRP = {{ MRP_PCT }}\), \quad \(\beta = {{ BETA_VAL }}\). \\
 Result: \textbf{{ EQUITY_COST_PCT }}
-{% else -%}
+{% else %}
 \[
-R_e = \frac{D_1}{P_0} + g \quad \text{with} \quad D_1 = D_0(1+g)
+R_e = \frac{D_1}{P_0} + g \quad \text{with } D_1 = D_0(1+g)
 \]
-\(D_0 = {{ D0_VAL }}\), \quad \(g = {{ G_PCT }}\), \quad \(P_0 = {{ P0_EQUITY }}\). \\
-
+Inputs used: \(D_0 = {{ D0_VAL }}\), \quad \(g = {{ G_PCT }}\), \quad \(P_0 = {{ P0_EQUITY }}\). \\
 Result: \textbf{{ EQUITY_COST_PCT }}
 {% endif %}
 
@@ -57,7 +58,7 @@ Result: \textbf{{ EQUITY_COST_PCT }}
 \toprule
 \textbf{Source} & \textbf{Weight (BV)} & \textbf{Weight (MV)} \\
 \midrule
-{% for r in ROWS_BV -%}
+{% for r in ROWS_BV %}
 {{ r.source }} & {{ "%.4f"|format(r.weight) }} & {{ "%.4f"|format(ROWS_MV[loop.index0].weight) }} \\
 {% endfor %}
 \midrule
@@ -72,7 +73,7 @@ Result: \textbf{{ EQUITY_COST_PCT }}
 \toprule
 \textbf{Source} & \textbf{Cost (\%)} & \textbf{Weight (BV)} & \textbf{Weight (MV)} \\
 \midrule
-{% for r in ROWS_BV -%}
+{% for r in ROWS_BV %}
 {{ r.source }} & {{ "%.2f"|format(r.cost*100) }} & {{ "%.4f"|format(r.weight) }} & {{ "%.4f"|format(ROWS_MV[loop.index0].weight) }} \\
 {% endfor %}
 \midrule
@@ -83,14 +84,14 @@ Result: \textbf{{ EQUITY_COST_PCT }}
 \end{center}
 
 \vspace{0.75em}
+
 \subsection*{WACC Reconciliation}
-(The reconciliation below uses market weights and costs with contributions shown to 4dp.)
 \begin{center}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Source} & \textbf{Weight} & \textbf{Cost (\%)} & \textbf{Contribution (\%)} \\
 \midrule
-{% for r in MV_CONTRIB -%}
+{% for r in MV_CONTRIB %}
 {{ r.source }} & {{ "%.4f"|format(r.weight) }} & {{ "%.2f"|format(r.cost*100) }} & {{ "%.4f"|format(r.contrib) }} \\
 {% endfor %}
 \midrule
@@ -103,4 +104,5 @@ Result: \textbf{{ EQUITY_COST_PCT }}
 {{ FORENSIC_BLOCK }}
 
 \printbibliography
+
 \end{document}
